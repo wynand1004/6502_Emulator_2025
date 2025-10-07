@@ -4,6 +4,13 @@
 
 # REF: http://www.6502.org/tutorials/6502opcodes.html
 
+from enum import Enum, auto
+
+class Mode(Enum):
+    IMMEDIATE = auto()
+    ABSOLUTE = auto()
+    IMPLIED = auto()
+    
 class CPU:
     
     def __init__(self):
@@ -16,82 +23,138 @@ class CPU:
         self.y = 0x00
         self.pc = 0x1000
         
+        self.commands = {
+            0xA9: {"f": self.LDA, "m": Mode.IMMEDIATE},
+            0xA2: {"f": self.LDX, "m": Mode.IMMEDIATE},
+            0xA0: {"f": self.LDY, "m": Mode.IMMEDIATE},
+            
+            0x8D: {"f": self.STA, "m": Mode.ABSOLUTE},
+            0x8E: {"f": self.STX, "m": Mode.ABSOLUTE},
+            0x8C: {"f": self.STY, "m": Mode.ABSOLUTE},
+            
+            0xE8: {"f": self.INX, "m": Mode.IMPLIED},
+            0xC8: {"f": self.INY, "m": Mode.IMPLIED},
+            0xAA: {"f": self.TAX, "m": Mode.IMPLIED},
+            0x8A: {"f": self.TXA, "m": Mode.IMPLIED},
+            0xA8: {"f": self.TAY, "m": Mode.IMPLIED},
+            0x98: {"f": self.TYA, "m": Mode.IMPLIED},
+        }
+        
+        self.increments = {
+            Mode.IMMEDIATE: 2,
+            Mode.ABSOLUTE: 3,
+            Mode.IMPLIED: 1
+        }
+        
     def tick(self):
         # fetch command
         command = self.memory[self.pc]
         
-        print(f"{hex(self.pc)}: {command}") 
+        # print(f"{hex(self.pc)}: {command}") 
         
         # execute
-        if command == 0xA9:
-            self.LDA(0)
-            self.pc += 2
-            
-        if command == 0xA2:
-            self.LDX(0)
-            self.pc += 2
-            
-        if command == 0xA0:
-            self.LDY(0)
-            self.pc += 2
-            
-        if command == 0x8D:
-            self.STA(1)
-            self.pc += 3
-            
-        if command == 0x8E:
-            self.STX(1)
-            self.pc += 3
-            
-        if command == 0x8C:
-            self.STY(1)
-            self.pc += 3
+        if command in self.commands:
+            f = self.commands[command]["f"]
+            m = self.commands[command]["m"]
+            f(m)
+            self.pc += self.increments[m]
+        else:
+            print(f"Command: {command} not impemented")
 
+
+    def get_location_by_mode(self, mode):
+        loc = 0
         
+        if mode == Mode.IMMEDIATE:
+            loc = self.pc + 1
+            
+        elif mode == Mode.ABSOLUTE:
+            lsb = self.memory[self.pc+1]
+            msb = self.memory[self.pc+2]
+            loc = msb * 256 + lsb            
+            
+        return loc
+        
+
     # LDA
     def LDA(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
         # Load value from memory
-        val = self.memory[self.pc+1]
+        val = self.memory[loc]
         # Put that value in the accumulator
         self.a = val
         
     # LDX
     def LDX(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
         # Load value from memory
-        val = self.memory[self.pc+1]
+        val = self.memory[loc]
         # Put that value in the accumulator
         self.x = val
         
     # LDY
     def LDY(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
         # Load value from memory
-        val = self.memory[self.pc+1]
+        val = self.memory[loc]
         # Put that value in the accumulator
         self.y = val
         
     # STA
     def STA(self, mode):
-        lsb = self.memory[self.pc+1]
-        msb = self.memory[self.pc+2]
-        loc = msb * 256 + lsb
-        
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        # Update memory
         self.memory[loc] = self.a
 
     # STX
     def STX(self, mode):
-        lsb = self.memory[self.pc+1]
-        msb = self.memory[self.pc+2]
-        loc = msb * 256 + lsb
-        
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        # Update memory
         self.memory[loc] = self.x
 
     # STY
     def STY(self, mode):
-        lsb = self.memory[self.pc+1]
-        msb = self.memory[self.pc+2]
-        loc = msb * 256 + lsb
-        
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        # Update memory
         self.memory[loc] = self.y
+        
+    # INX
+    def INX(self, mode):
+        self.x += 1
+    
+    # INY
+    def INY(self, mode):
+        self.y += 1
+        
+    # DEX
+    def INX(self, mode):
+        self.x -= 1
+    
+    # DEY
+    def INY(self, mode):
+        self.y -= 1
+        
+    # TAX
+    def TAX(self, mode):
+        self.x = self.a
+        
+    # TXA
+    def TXA(self, mode):
+        self.a = self.x
+        
+    # TAY
+    def TAY(self, mode):
+        self.y = self.a
+        
+    # TYA
+    def TYA(self, mode):
+        self.a = self.y
 
 # Create CPU object
 cpu = CPU()
@@ -119,14 +182,23 @@ cpu.memory[0x100C] = 0x8C # STY 0x4402
 cpu.memory[0x100D] = 0x02
 cpu.memory[0x100E] = 0x44
 
+cpu.memory[0x100F] = 0xE8 # INX
+cpu.memory[0x1010] = 0xC8 # INY
+
+
 for _ in range(100):
     cpu.tick()
 
-print(cpu.a)
-print(cpu.x)
-print(cpu.y)
+print(f"a: {cpu.a}")
+print(f"x: {cpu.x}")
+print(f"y: {cpu.y}")
 
 print()
 print(cpu.memory[0x4400])
 print(cpu.memory[0x4401])
 print(cpu.memory[0x4402])
+
+print()
+print(f"a: {cpu.a}")
+print(f"x: {cpu.x}")
+print(f"y: {cpu.y}")
