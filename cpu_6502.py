@@ -9,7 +9,12 @@ from enum import Enum, auto
 class Mode(Enum):
     IMMEDIATE = auto()
     ABSOLUTE = auto()
+    ZEROPAGE = auto()
+    ZEROPAGEX = auto()
+    ABSOLUTEX = auto()
+    ABSOLUTEY = auto()
     IMPLIED = auto()
+
     
 class CPU:
     
@@ -24,7 +29,15 @@ class CPU:
         self.pc = 0x1000
         
         self.commands = {
+            0x42: {"f": self.print_status, "m": Mode.IMPLIED},
+             
             0xA9: {"f": self.LDA, "m": Mode.IMMEDIATE},
+            0xA5: {"f": self.LDA, "m": Mode.ZEROPAGE},
+            0xB5: {"f": self.LDA, "m": Mode.ZEROPAGEX},
+            0xBD: {"f": self.LDA, "m": Mode.ABSOLUTEX},
+            0xB9: {"f": self.LDA, "m": Mode.ABSOLUTEY},
+            
+            
             0xA2: {"f": self.LDX, "m": Mode.IMMEDIATE},
             0xA0: {"f": self.LDY, "m": Mode.IMMEDIATE},
             
@@ -42,9 +55,15 @@ class CPU:
         
         self.increments = {
             Mode.IMMEDIATE: 2,
+            Mode.ZEROPAGE: 2,
+            Mode.ZEROPAGEX: 2,
             Mode.ABSOLUTE: 3,
-            Mode.IMPLIED: 1
+            Mode.IMPLIED: 1,
+            Mode.ABSOLUTEX: 3,
+            Mode.ABSOLUTEY: 3
         }
+        
+
         
     def tick(self):
         # fetch command
@@ -72,9 +91,29 @@ class CPU:
             lsb = self.memory[self.pc+1]
             msb = self.memory[self.pc+2]
             loc = msb * 256 + lsb            
+        
+        elif mode == Mode.ABSOLUTEX:
+            lsb = self.memory[self.pc+1]
+            msb = self.memory[self.pc+2]
+            loc = msb * 256 + lsb 
+            loc += self.x
+            
+        elif mode == Mode.ABSOLUTEY:
+            lsb = self.memory[self.pc+1]
+            msb = self.memory[self.pc+2]
+            loc = msb * 256 + lsb 
+            loc += self.y
+            
+        elif mode == Mode.ZEROPAGE:
+            lsb = self.memory[self.pc+1]
+            loc = lsb   
+            
+        elif mode == Mode.ZEROPAGEX:
+            lsb = self.memory[self.pc+1]
+            loc = lsb + x
             
         return loc
-        
+    
 
     # LDA
     def LDA(self, mode):
@@ -133,11 +172,11 @@ class CPU:
         self.y += 1
         
     # DEX
-    def INX(self, mode):
+    def DEX(self, mode):
         self.x -= 1
     
     # DEY
-    def INY(self, mode):
+    def DEY(self, mode):
         self.y -= 1
         
     # TAX
@@ -156,49 +195,60 @@ class CPU:
     def TYA(self, mode):
         self.a = self.y
 
+
+    # Testing / Debugging
+    def push(self, value):
+        self.memory[self.pc] = value
+        self.pc += 1
+        
+    def print_status(self, mode):
+        print(f"a: {self.a}")
+        print(f"x: {self.x}")
+        print(f"y: {self.y}")
+        print(f"pc: {self.pc}")
+        input()        
+
 # Create CPU object
 cpu = CPU()
 print(cpu.a)
 
-cpu.memory[0x1000] = 0xA9 # LDA #0x44
-cpu.memory[0x1001] = 0x44
+cpu.pc = 0x1000
 
-cpu.memory[0x1002] = 0xA2 # LDX #0x45
-cpu.memory[0x1003] = 0x45
+cpu.push(0xA9) # LDA #0x0A
+cpu.push(0x0A)
 
-cpu.memory[0x1004] = 0xA0 # LDY #0x46
-cpu.memory[0x1005] = 0x46
+cpu.push(0x42) # DGB
 
+cpu.push(0x8D) # STA 0x4401
+cpu.push(0x01)
+cpu.push(0x44)
 
-cpu.memory[0x1006] = 0x8D # STA 0x4400
-cpu.memory[0x1007] = 0x00
-cpu.memory[0x1008] = 0x44
+cpu.push(0x42) # DGB
 
-cpu.memory[0x1009] = 0x8E # STX 0x4401
-cpu.memory[0x100A] = 0x01
-cpu.memory[0x100B] = 0x44
+cpu.push(0xA2) # LDX #0x01
+cpu.push(0x01)
 
-cpu.memory[0x100C] = 0x8C # STY 0x4402
-cpu.memory[0x100D] = 0x02
-cpu.memory[0x100E] = 0x44
+cpu.push(0xBD) # LDA 0x4400, X
+cpu.push(0x00)
+cpu.push(0x44)
 
-cpu.memory[0x100F] = 0xE8 # INX
-cpu.memory[0x1010] = 0xC8 # INY
+cpu.push(0x42) # DGB
 
+cpu.push(0xA5) # LDA 0x55
+cpu.push(0x55) 
+
+cpu.push(0x42) # DGB
+
+cpu.pc = 0x1000
 
 for _ in range(100):
     cpu.tick()
 
-print(f"a: {cpu.a}")
-print(f"x: {cpu.x}")
-print(f"y: {cpu.y}")
+
+
 
 print()
 print(cpu.memory[0x4400])
 print(cpu.memory[0x4401])
 print(cpu.memory[0x4402])
 
-print()
-print(f"a: {cpu.a}")
-print(f"x: {cpu.x}")
-print(f"y: {cpu.y}")
