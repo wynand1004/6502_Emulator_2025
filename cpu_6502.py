@@ -28,6 +28,13 @@ class CPU:
         self.y = 0x00
         self.pc = 0x1000
         
+        self.carry = False;
+        self.interrupt = False;
+        self.overflow = False;
+        self.decimal = False;
+        
+        
+        
         self.commands = {
             0x42: {"f": self.print_status, "m": Mode.IMPLIED},
              
@@ -51,6 +58,15 @@ class CPU:
             0x8A: {"f": self.TXA, "m": Mode.IMPLIED},
             0xA8: {"f": self.TAY, "m": Mode.IMPLIED},
             0x98: {"f": self.TYA, "m": Mode.IMPLIED},
+            
+            0x18: {"f": self.CLC, "m": Mode.IMPLIED},
+            0x38: {"f": self.SEC, "m": Mode.IMPLIED},
+            0x58: {"f": self.CLI, "m": Mode.IMPLIED},
+            0x78: {"f": self.SEI, "m": Mode.IMPLIED},
+            0xB8: {"f": self.CLV, "m": Mode.IMPLIED},
+            0xD8: {"f": self.CLD, "m": Mode.IMPLIED},
+            0xF8: {"f": self.SED, "m": Mode.IMPLIED},
+            
         }
         
         self.increments = {
@@ -64,7 +80,7 @@ class CPU:
         }
         
 
-        
+
     def tick(self):
         # fetch command
         command = self.memory[self.pc]
@@ -194,7 +210,34 @@ class CPU:
     # TYA
     def TYA(self, mode):
         self.a = self.y
-
+        
+    # CLC
+    def CLC(self, mode):
+        self.carry = False
+        
+    # SEC
+    def SEC(self, mode):
+        self.carry = True
+    
+    # CLI
+    def CLI(self, mode):
+        self.interrupt = False
+    
+    # SEI
+    def SEI(self, mode):
+        self.interrupt = True
+    
+    # CLV
+    def CLV(self, mode):
+        self.overflow = False
+    
+    # CLD
+    def CLD(self, mode):
+        self.decimal = False
+    
+    # SED
+    def SED(self, mode):
+        self.decimal = True
 
     # Testing / Debugging
     def push(self, value):
@@ -206,49 +249,10 @@ class CPU:
         print(f"x: {self.x}")
         print(f"y: {self.y}")
         print(f"pc: {self.pc}")
+        print(f"carry: {self.carry}") 
+        print(f"interrupt: {self.interrupt}")
+        print(f"overflow: {self.overflow}")
+        print(f"decimal: {self.decimal}")
         input()        
 
-# Create CPU object
-cpu = CPU()
-print(cpu.a)
-
-cpu.pc = 0x1000
-
-cpu.push(0xA9) # LDA #0x0A
-cpu.push(0x0A)
-
-cpu.push(0x42) # DGB
-
-cpu.push(0x8D) # STA 0x4401
-cpu.push(0x01)
-cpu.push(0x44)
-
-cpu.push(0x42) # DGB
-
-cpu.push(0xA2) # LDX #0x01
-cpu.push(0x01)
-
-cpu.push(0xBD) # LDA 0x4400, X
-cpu.push(0x00)
-cpu.push(0x44)
-
-cpu.push(0x42) # DGB
-
-cpu.push(0xA5) # LDA 0x55
-cpu.push(0x55) 
-
-cpu.push(0x42) # DGB
-
-cpu.pc = 0x1000
-
-for _ in range(100):
-    cpu.tick()
-
-
-
-
-print()
-print(cpu.memory[0x4400])
-print(cpu.memory[0x4401])
-print(cpu.memory[0x4402])
 
