@@ -14,6 +14,7 @@ class Mode(Enum):
     ABSOLUTEX = auto()
     ABSOLUTEY = auto()
     IMPLIED = auto()
+    INDIRECT = auto()
 
     
 class CPU:
@@ -58,6 +59,8 @@ class CPU:
             0x8A: {"f": self.TXA, "m": Mode.IMPLIED},
             0xA8: {"f": self.TAY, "m": Mode.IMPLIED},
             0x98: {"f": self.TYA, "m": Mode.IMPLIED},
+            0xCA: {"f": self.DEX, "m": Mode.IMPLIED},
+            0x88: {"f": self.DEY, "m": Mode.IMPLIED},
             
             0x18: {"f": self.CLC, "m": Mode.IMPLIED},
             0x38: {"f": self.SEC, "m": Mode.IMPLIED},
@@ -67,6 +70,8 @@ class CPU:
             0xD8: {"f": self.CLD, "m": Mode.IMPLIED},
             0xF8: {"f": self.SED, "m": Mode.IMPLIED},
             
+            0x4C: {"f": self.JMP, "m": Mode.ABSOLUTE},
+            0x6C: {"f": self.JMP, "m": Mode.INDIRECT},
         }
         
         self.increments = {
@@ -76,7 +81,8 @@ class CPU:
             Mode.ABSOLUTE: 3,
             Mode.IMPLIED: 1,
             Mode.ABSOLUTEX: 3,
-            Mode.ABSOLUTEY: 3
+            Mode.ABSOLUTEY: 3,
+            Mode.INDIRECT: 3
         }
         
 
@@ -128,8 +134,26 @@ class CPU:
             lsb = self.memory[self.pc+1]
             loc = lsb + x
             
+        elif mode == Mode.INDIRECT:
+            # Get the memory location where the JMP address is
+            lsb = self.memory[self.pc+1]
+            msb = self.memory[self.pc+2]
+            loc = msb * 256 + lsb 
+            
+            # Get the JMP address from the memory location
+            lsb = self.memory[loc]
+            msb = self.memory[loc + 1]
+            loc = msb * 256 + lsb
+            
         return loc
-    
+
+    # Wrap 8 bit values
+    def wrap(self, value):
+        if value > 255:
+            value = value % 256;
+        if value < 0:
+            value += 256
+        return value
 
     # LDA
     def LDA(self, mode):
@@ -182,18 +206,22 @@ class CPU:
     # INX
     def INX(self, mode):
         self.x += 1
+        self.x = self.wrap(self.x)
     
     # INY
     def INY(self, mode):
         self.y += 1
+        self.y = self.wrap(self.y)
         
     # DEX
     def DEX(self, mode):
         self.x -= 1
+        self.x = self.wrap(self.x)
     
     # DEY
     def DEY(self, mode):
         self.y -= 1
+        self.y = self.wrap(self.y)
         
     # TAX
     def TAX(self, mode):
@@ -238,6 +266,15 @@ class CPU:
     # SED
     def SED(self, mode):
         self.decimal = True
+        
+        
+    # JMP
+    def JMP(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        # Set pc to loc
+        self.pc = loc - self.increments[mode]
+        
 
     # Testing / Debugging
     def push(self, value):
