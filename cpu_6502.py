@@ -33,6 +33,8 @@ class CPU:
         self.interrupt = False;
         self.overflow = False;
         self.decimal = False;
+        self.equal = False;
+        self.negative = False;
         
         
         
@@ -72,8 +74,15 @@ class CPU:
             
             0x4C: {"f": self.JMP, "m": Mode.ABSOLUTE},
             0x6C: {"f": self.JMP, "m": Mode.INDIRECT},
+            
+            0xC9: {"f": self.CMP, "m": Mode.IMMEDIATE},
+            0xC5: {"f": self.CMP, "m": Mode.ZEROPAGE},
+            0xD5: {"f": self.CMP, "m": Mode.ZEROPAGEX},
+            0xCD: {"f": self.CMP, "m": Mode.ABSOLUTE},
+            0xDD: {"f": self.CMP, "m": Mode.ABSOLUTEX},
+            0xD9: {"f": self.CMP, "m": Mode.ABSOLUTEY},            
         }
-        
+
         self.increments = {
             Mode.IMMEDIATE: 2,
             Mode.ZEROPAGE: 2,
@@ -267,13 +276,30 @@ class CPU:
     def SED(self, mode):
         self.decimal = True
         
-        
     # JMP
     def JMP(self, mode):
         # Find the location based on the mode
         loc = self.get_location_by_mode(mode)
         # Set pc to loc
         self.pc = loc - self.increments[mode]
+        
+    # CMP
+    def CMP(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Set Carry if >= a
+        if value >= self.a:
+            self.carry = True
+            
+        if value == self.a:
+            self.equal = True
+        
+        print(f"CMP: self.a = {self.a}")
+        if self.a >= 128:
+            self.negative = True
+            
         
 
     # Testing / Debugging
@@ -290,6 +316,8 @@ class CPU:
         print(f"interrupt: {self.interrupt}")
         print(f"overflow: {self.overflow}")
         print(f"decimal: {self.decimal}")
+        print(f"equal: {self.equal}")
+        print(f"negative: {self.negative}")
         input()        
 
 
