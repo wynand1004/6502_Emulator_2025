@@ -15,7 +15,7 @@ class Mode(Enum):
     ABSOLUTEY = auto()
     IMPLIED = auto()
     INDIRECT = auto()
-
+    RELATIVE = auto()
     
 class CPU:
     
@@ -29,14 +29,13 @@ class CPU:
         self.y = 0x00
         self.pc = 0x1000
         
-        self.carry = False;
-        self.interrupt = False;
-        self.overflow = False;
-        self.decimal = False;
-        self.equal = False;
-        self.negative = False;
-        
-        
+        self.n = False # N
+        self.v = False # V
+        self.b = False # B
+        self.d = False # D
+        self.i = False # I 
+        self.z = False # Z
+        self.c = False # C
         
         self.commands = {
             0x42: {"f": self.print_status, "m": Mode.IMPLIED},
@@ -80,7 +79,10 @@ class CPU:
             0xD5: {"f": self.CMP, "m": Mode.ZEROPAGEX},
             0xCD: {"f": self.CMP, "m": Mode.ABSOLUTE},
             0xDD: {"f": self.CMP, "m": Mode.ABSOLUTEX},
-            0xD9: {"f": self.CMP, "m": Mode.ABSOLUTEY},            
+            0xD9: {"f": self.CMP, "m": Mode.ABSOLUTEY}, 
+            
+            0x30: {"f": self.BMI, "m": Mode.RELATIVE}, 
+                      
         }
 
         self.increments = {
@@ -91,7 +93,8 @@ class CPU:
             Mode.IMPLIED: 1,
             Mode.ABSOLUTEX: 3,
             Mode.ABSOLUTEY: 3,
-            Mode.INDIRECT: 3
+            Mode.INDIRECT: 3,
+            Mode.RELATIVE: 2
         }
         
 
@@ -153,6 +156,9 @@ class CPU:
             lsb = self.memory[loc]
             msb = self.memory[loc + 1]
             loc = msb * 256 + lsb
+            
+        elif mode == Mode.RELATIVE:
+            loc = self.pc + 1
             
         return loc
 
@@ -250,31 +256,31 @@ class CPU:
         
     # CLC
     def CLC(self, mode):
-        self.carry = False
+        self.c = False
         
     # SEC
     def SEC(self, mode):
-        self.carry = True
+        self.c = True
     
     # CLI
     def CLI(self, mode):
-        self.interrupt = False
+        self.i = False
     
     # SEI
     def SEI(self, mode):
-        self.interrupt = True
+        self.i = True
     
     # CLV
     def CLV(self, mode):
-        self.overflow = False
+        self.v = False
     
     # CLD
     def CLD(self, mode):
-        self.decimal = False
+        self.d = False
     
     # SED
     def SED(self, mode):
-        self.decimal = True
+        self.d = True
         
     # JMP
     def JMP(self, mode):
@@ -291,17 +297,28 @@ class CPU:
         
         # Set Carry if >= a
         if value >= self.a:
-            self.carry = True
+            self.c = True
             
         if value == self.a:
-            self.equal = True
+            self.z = True
         
-        print(f"CMP: self.a = {self.a}")
         if self.a >= 128:
-            self.negative = True
+            self.n = True
             
+    #BMI
+    def BMI(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
         
-
+        # Jump to the offset
+        if self.n == True:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+            
     # Testing / Debugging
     def push(self, value):
         self.memory[self.pc] = value
@@ -312,12 +329,8 @@ class CPU:
         print(f"x: {self.x}")
         print(f"y: {self.y}")
         print(f"pc: {self.pc}")
-        print(f"carry: {self.carry}") 
-        print(f"interrupt: {self.interrupt}")
-        print(f"overflow: {self.overflow}")
-        print(f"decimal: {self.decimal}")
-        print(f"equal: {self.equal}")
-        print(f"negative: {self.negative}")
+        print(f"n v b d i z c")
+        print(f"{int(self.n)} {int(self.v)} {int(self.b)} {int(self.d)} {int(self.i)} {int(self.z)} {int(self.c)}")
         input()        
 
 
