@@ -81,8 +81,14 @@ class CPU:
             0xDD: {"f": self.CMP, "m": Mode.ABSOLUTEX},
             0xD9: {"f": self.CMP, "m": Mode.ABSOLUTEY}, 
             
+            0x10: {"f": self.BPL, "m": Mode.RELATIVE},
             0x30: {"f": self.BMI, "m": Mode.RELATIVE}, 
-                      
+            0x50: {"f": self.BVC, "m": Mode.RELATIVE},
+            0x70: {"f": self.BVS, "m": Mode.RELATIVE},
+            0x90: {"f": self.BCC, "m": Mode.RELATIVE},
+            0xB0: {"f": self.BCS, "m": Mode.RELATIVE},
+            0xD0: {"f": self.BNE, "m": Mode.RELATIVE},
+            0xF0: {"f": self.BEQ, "m": Mode.RELATIVE},
         }
 
         self.increments = {
@@ -112,8 +118,8 @@ class CPU:
             f(m)
             self.pc += self.increments[m]
         else:
-            print(f"Command: {command} not impemented")
-
+            print(f"Command: {command} not impemented at location {hex(self.pc)}")
+            input()
 
     def get_location_by_mode(self, mode):
         loc = 0
@@ -319,6 +325,104 @@ class CPU:
                 
             self.pc = self.pc + value
             
+    # BPL
+    def BPL(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.n == False:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
+    # BVC
+    def BVC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.v == True:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
+    # BVS
+    def BVS(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.v == False:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
+    # BCC
+    def BCC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.c == False:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
+    # BCS
+    def BCS(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.c == True:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
+    # BNE
+    def BNE(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.z == False:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value    
+    
+    # BEQ
+    def BEQ(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Jump to the offset
+        if self.z == True:
+            # Recalculate if negative
+            if value >= 128:
+                value -= 256
+                
+            self.pc = self.pc + value
+                
     # Testing / Debugging
     def push(self, value):
         self.memory[self.pc] = value
