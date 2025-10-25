@@ -10,11 +10,6 @@ print(cpu.a)
 
 cpu.pc = 0x1000
 
-cpu.push(0xA2) # LDX #0xFF
-cpu.push(0xFF) 
-
-cpu.push(0x42) # DBG
-
 cpu.push(0xA9) # LDA #0x90
 cpu.push(0x90) 
 
@@ -23,15 +18,22 @@ cpu.push(0x01)
 
 cpu.push(0x42) # DBG
 
-cpu.push(0xF0) # BEQ LDX #0xFF
-cpu.push(0xF6)
+cpu.push(0x08) # PHP
 
-cpu.push(0xA2) # LDX #0x01
-cpu.push(0x01) 
+cpu.push(0xA9) # LDA #0x00
+cpu.push(0x00)
+
+
+cpu.push(0xC9) # CMP #0x00
+cpu.push(0x00)
 
 cpu.push(0x42) # DBG
 
-cpu.pc = 0x1003
+cpu.push(0x28) # PLP
+
+cpu.push(0x42) # DBG
+
+cpu.pc = 0x1000
 
 for _ in range(30):
     cpu.tick()

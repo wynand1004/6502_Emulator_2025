@@ -28,6 +28,7 @@ class CPU:
         self.x = 0x00
         self.y = 0x00
         self.pc = 0x1000
+        self.sp = 0xFF
         
         self.n = False # N
         self.v = False # V
@@ -48,6 +49,8 @@ class CPU:
             
             
             0xA2: {"f": self.LDX, "m": Mode.IMMEDIATE},
+            0xAE: {"f": self.LDX, "m": Mode.ABSOLUTE},
+            
             0xA0: {"f": self.LDY, "m": Mode.IMMEDIATE},
             
             0x8D: {"f": self.STA, "m": Mode.ABSOLUTE},
@@ -89,6 +92,13 @@ class CPU:
             0xB0: {"f": self.BCS, "m": Mode.RELATIVE},
             0xD0: {"f": self.BNE, "m": Mode.RELATIVE},
             0xF0: {"f": self.BEQ, "m": Mode.RELATIVE},
+            
+            0x9A: {"f": self.TXS, "m": Mode.IMPLIED},
+            0xBA: {"f": self.TSX, "m": Mode.IMPLIED},
+            0x48: {"f": self.PHA, "m": Mode.IMPLIED},
+            0x68: {"f": self.PLA, "m": Mode.IMPLIED},
+            0x08: {"f": self.PHP, "m": Mode.IMPLIED},
+            0x28: {"f": self.PLP, "m": Mode.IMPLIED},
         }
 
         self.increments = {
@@ -119,7 +129,7 @@ class CPU:
             self.pc += self.increments[m]
         else:
             print(f"Command: {command} not impemented at location {hex(self.pc)}")
-            input()
+            
 
     def get_location_by_mode(self, mode):
         loc = 0
@@ -422,7 +432,127 @@ class CPU:
                 value -= 256
                 
             self.pc = self.pc + value
-                
+
+    # TXS
+    def TXS(self, mode):
+        self.sp = self.x
+        
+    # TXA
+    def TSX(self, mode):
+        sefl.x = self.sp
+        
+    # PHA
+    def PHA(self, mode):
+        # Find the location
+        loc = 0x0100 + self.sp
+        
+        # Copy from the accumulator
+        self.memory[loc] = self.a
+        
+        # Decrement the stack pointer
+        self.sp -= 1
+        
+        # Wrap
+        self.sp = self.wrap(self.sp)
+
+    # PLA
+    def PLA(self, mode):
+        # Increment the Stack Pointer
+        self.sp += 1
+        
+        # Wrap
+        self.sp = self.wrap(self.sp)
+        
+        # Find the location
+        loc = 0x100 + self.sp
+        
+        # Copy the value to the Accumulator
+        self.a = self.memory[loc]
+    
+    # PHP
+    def PHP(self, mode):
+        # nvb1dizc
+        val = 0
+        if self.n == True:
+            val += 128
+        if self.v == True:
+            val += 64
+        if self.b == True:
+            val += 32
+        val += 16
+        if self.d == True:
+            val += 8
+        if self.i == True:
+            val += 4
+        if self.z == True:
+            val += 2
+        if self.c == True:
+            val += 1
+
+        # Find the location
+        loc = 0x100 + self.sp
+        
+        # Copy from the accumulator
+        self.memory[loc] = val
+        
+        # Decrement the stack pointer
+        self.sp -= 1
+        
+        # Wrap
+        self.sp = self.wrap(self.sp)
+
+    # PLP
+    def PLP(self, mode):
+        # Increment the Stack Pointer
+        self.sp += 1
+        
+        # Wrap
+        self.sp = self.wrap(self.sp)
+        
+        # Find the location
+        loc = 0x100 + self.sp
+        
+        # Find the value
+        val = self.memory[loc]
+        
+        # Decode value and update flags
+        if val & 128 == 128:
+            self.n = True
+        else:
+            self.n = False
+            
+        if val & 64 == 64:
+            self.v = True
+        else:
+            self.v = False
+            
+        if val & 32 == 32:
+            self.b = True
+        else:
+            self.b = False
+            
+        if val & 8 == 8:
+            self.d = True
+        else:
+            self.d = False
+            
+        if val & 4 == 4:
+            self.i = True
+        else:
+            self.i = False
+            
+        if val & 2 == 2:
+            self.z = True
+        else:
+            self.z = False
+            
+        if val & 1 == 1:
+            self.c = True
+        else:
+            self.c = False
+            
+        
+
     # Testing / Debugging
     def push(self, value):
         self.memory[self.pc] = value
@@ -432,7 +562,7 @@ class CPU:
         print(f"a: {self.a}")
         print(f"x: {self.x}")
         print(f"y: {self.y}")
-        print(f"pc: {self.pc}")
+        print(f"pc: {self.pc}  sp: {self.sp}")
         print(f"n v b d i z c")
         print(f"{int(self.n)} {int(self.v)} {int(self.b)} {int(self.d)} {int(self.i)} {int(self.z)} {int(self.c)}")
         input()        
