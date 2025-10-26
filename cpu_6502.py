@@ -99,6 +99,10 @@ class CPU:
             0x68: {"f": self.PLA, "m": Mode.IMPLIED},
             0x08: {"f": self.PHP, "m": Mode.IMPLIED},
             0x28: {"f": self.PLP, "m": Mode.IMPLIED},
+            
+            0x20: {"f": self.JSR, "m": Mode.ABSOLUTE},
+            0x60: {"f": self.RTS, "m": Mode.IMPLIED},
+        
         }
 
         self.increments = {
@@ -129,7 +133,7 @@ class CPU:
             self.pc += self.increments[m]
         else:
             print(f"Command: {command} not impemented at location {hex(self.pc)}")
-            
+            input()
 
     def get_location_by_mode(self, mode):
         loc = 0
@@ -551,7 +555,55 @@ class CPU:
         else:
             self.c = False
             
+            
+    # JSR
+    def JSR(self, mode):
+        # Return location (-1)
+        loc = self.pc + 2
         
+        msb = loc % 256
+        lsb = loc - (msb * 256)
+        
+        # Copy value from accumulator
+        temp_a = self.a
+        
+        # Push onto stack
+        self.a = msb
+        self.PHA(mode)
+        
+        self.a = lsb
+        self.PHA(mode)
+        
+        # Copy temp back to a
+        self.a = temp_a
+        
+        # Change program counter to new location
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Set pc to loc
+        self.pc = loc - self.increments[mode]
+        
+    # RTS
+    def RTS(self, mode):
+        # Copy a value to temp
+        temp_a = self.a
+        
+        # Pull the lsb
+        self.PLA(mode)
+        lsb = self.a
+        
+        # Pull the msb
+        self.PLA(mode)
+        msb = self.a
+        
+        # Restore temp to a
+        self.a = temp_a
+        
+        # Set PC to return address
+        loc = msb * 256 + lsb
+        self.pc = loc
+
 
     # Testing / Debugging
     def push(self, value):
