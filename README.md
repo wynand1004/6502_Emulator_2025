@@ -12,8 +12,15 @@ You can follow along with the development here on my YouTube Channel: [https://w
 
 ## Road Map
 
-To be implemented:
+### To be implemented:
  - More 6502 Commands
+   - ADC, AND, ASL, BIT, BRK, EOR, LSR, NOP, ORA, ROL, ROR, RTI, SBC 
  - More Addressing Modes
+   - INDIRECTX, INDIRECTY
  - Setting Flags
  - Interrupts
+
+### Simple System
+ - 40 Character Display
+ - Keyboard Input
+ - Bitmap Graphics
