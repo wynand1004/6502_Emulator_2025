@@ -16,5 +16,4 @@ To be implemented:
  - More 6502 Commands
  - More Addressing Modes
  - Setting Flags
- - JSR / RTS
  - Interrupts
