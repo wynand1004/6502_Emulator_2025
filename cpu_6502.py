@@ -102,7 +102,16 @@ class CPU:
             
             0x20: {"f": self.JSR, "m": Mode.ABSOLUTE},
             0x60: {"f": self.RTS, "m": Mode.IMPLIED},
+            
+            0x69: {"f": self.ADC, "m": Mode.IMMEDIATE},
         
+            0x29: {"f": self.AND, "m": Mode.IMMEDIATE},
+            
+            0x09: {"f": self.ORA, "m": Mode.IMMEDIATE},
+            
+            0x49: {"f": self.EOR, "m": Mode.IMMEDIATE},
+            
+            
         }
 
         self.increments = {
@@ -603,6 +612,58 @@ class CPU:
         # Set PC to return address
         loc = msb * 256 + lsb
         self.pc = loc
+
+    # ADC
+    def ADC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Add value to the accumulator
+        self.a += value
+        
+        # If the carry flag is set, add 1
+        if self.c == True:
+            self.a += 1
+        
+        # Carry and Wrap around
+        if self.a > 255:
+            self.c = True
+            self.a = self.wrap(self.a)
+        else:
+            self.c = False
+
+    def AND(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Perform logial AND
+        self.a = self.a & value
+        
+    def ORA(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Perform logial AND
+        self.a = self.a | value
+        
+    def EOR(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Perform logial AND
+        self.a = self.a ^ value
 
 
     # Testing / Debugging
