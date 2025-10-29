@@ -111,6 +111,11 @@ class CPU:
             
             0x49: {"f": self.EOR, "m": Mode.IMMEDIATE},
             
+            0xE9: {"f": self.SBC, "m": Mode.IMMEDIATE},
+            
+            0xEA: {"f": self.NOP, "m": Mode.IMPLIED},
+            
+            
             
         }
 
@@ -634,6 +639,28 @@ class CPU:
             self.a = self.wrap(self.a)
         else:
             self.c = False
+            
+    def SBC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Subtract value from accumulator
+        self.a -= value
+
+        # Check carry flag
+        if self.c == False:
+            self.a -= 1
+            
+        if self.a < 0:
+            self.a = self.wrap(self.a)
+            
+            if self.c == True:
+                self.c = False
+            else:
+                self.c = True
 
     def AND(self, mode):
         # Find the location based on the mode
@@ -665,6 +692,8 @@ class CPU:
         # Perform logial AND
         self.a = self.a ^ value
 
+    def NOP(self, mode):
+        pass
 
     # Testing / Debugging
     def push(self, value):

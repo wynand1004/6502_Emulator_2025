@@ -10,15 +10,28 @@ print(cpu.a)
 
 cpu.pc = 0x1000
 
-# AND / OR / EOR
+# SBC
 
-cpu.push(0xA9) # LDA #0x01
+cpu.push(0xA9) # LDA #0xXX
 cpu.push(0x01)
 
 cpu.push(0x42) # DBG
 
-cpu.push(0x09) # ORA #XX
-cpu.push(0x04)
+cpu.push(0xEA) # NOP
+cpu.push(0xEA) # NOP
+cpu.push(0xEA) # NOP
+cpu.push(0xEA) # NOP
+cpu.push(0xEA) # NOP
+cpu.push(0xEA) # NOP
+
+cpu.push(0x42) # DBG
+
+cpu.push(0x38) # SEC
+
+cpu.push(0x42) # DBG
+
+cpu.push(0xE9) # SBC #0xXX
+cpu.push(0x02)
 
 cpu.push(0x42) # DBG
 
