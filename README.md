@@ -14,7 +14,7 @@ You can follow along with the development here on my YouTube Channel: [https://w
 
 ### To be implemented:
  - More 6502 Commands
-   - ASL, BIT, BRK, LSR, ORA, ROL, ROR, RTI, SBC 
+   - ASL, BIT, BRK, LSR, NOP, ROL, ROR, RTI, SBC 
  - More Addressing Modes
    - INDIRECTX, INDIRECTY
  - Setting Flags
@@ -25,3 +25,5 @@ You can follow along with the development here on my YouTube Channel: [https://w
  - 40 Character Display
  - Keyboard Input
  - Bitmap Graphics
+
+### Simple Assembler
