@@ -16,6 +16,7 @@ class Mode(Enum):
     IMPLIED = auto()
     INDIRECT = auto()
     RELATIVE = auto()
+    ACCUMULATOR = auto()
     
 class CPU:
     
@@ -115,6 +116,14 @@ class CPU:
             
             0xEA: {"f": self.NOP, "m": Mode.IMPLIED},
             
+            0x0A: {"f": self.ASL, "m": Mode.ACCUMULATOR},
+            
+            0x4A: {"f": self.LSR, "m": Mode.ACCUMULATOR},
+            
+            0x2A: {"f": self.ROL, "m": Mode.ACCUMULATOR},
+            
+            0x6A: {"f": self.ROR, "m": Mode.ACCUMULATOR},
+            
             
             
         }
@@ -128,7 +137,8 @@ class CPU:
             Mode.ABSOLUTEX: 3,
             Mode.ABSOLUTEY: 3,
             Mode.INDIRECT: 3,
-            Mode.RELATIVE: 2
+            Mode.RELATIVE: 2,
+            Mode.ACCUMULATOR: 1
         }
         
 
@@ -694,6 +704,135 @@ class CPU:
 
     def NOP(self, mode):
         pass
+        
+    def ASL(self, mode):
+        if mode == Mode.ACCUMULATOR:
+            value = self.a
+        else:
+            # Find the location based on the mode
+            loc = self.get_location_by_mode(mode)
+        
+            # Get the value
+            value = self.memory[loc]
+            
+        # Check the leftmost bit
+        if value & 128 == 128:
+            self.c = True
+        else:
+            self.c = False
+        
+        # Shift Left
+        value = value << 1
+        
+        # Wrap
+        value = self.wrap(value)
+        
+        # Put the value into Accumulator or memory
+        if mode == Mode.ACCUMULATOR:
+            self.a = value
+        else:
+            self.memory[loc] = value
+            
+    def LSR(self, mode):
+        if mode == Mode.ACCUMULATOR:
+            value = self.a
+        else:
+            # Find the location based on the mode
+            loc = self.get_location_by_mode(mode)
+        
+            # Get the value
+            value = self.memory[loc]
+            
+        # Check the rightmost bit
+        if value & 1 == 1:
+            self.c = True
+        else:
+            self.c = False
+        
+        # Shift Left
+        value = value >> 1
+        
+        # Wrap
+        value = self.wrap(value)
+        
+        # Put the value into Accumulator or memory
+        if mode == Mode.ACCUMULATOR:
+            self.a = value
+        else:
+            self.memory[loc] = value
+
+    def ROL(self, mode):
+        if mode == Mode.ACCUMULATOR:
+            value = self.a
+        else:
+            # Find the location based on the mode
+            loc = self.get_location_by_mode(mode)
+        
+            # Get the value
+            value = self.memory[loc]
+            
+        # Check carry bit
+        temp = 0
+        if self.c == True:
+            temp = 1
+            
+        # Check the leftmost bit
+        if value & 128 == 128:
+            self.c = True
+        else:
+            self.c = False
+        
+        # Shift Left
+        value = value << 1
+        
+        # Wrap
+        value = self.wrap(value)
+        
+        # Add the carry
+        value = value | temp
+        
+        # Put the value into Accumulator or memory
+        if mode == Mode.ACCUMULATOR:
+            self.a = value
+        else:
+            self.memory[loc] = value
+
+    def ROR(self, mode):
+        if mode == Mode.ACCUMULATOR:
+            value = self.a
+        else:
+            # Find the location based on the mode
+            loc = self.get_location_by_mode(mode)
+        
+            # Get the value
+            value = self.memory[loc]
+            
+        # Check carry bit
+        temp = 0
+        if self.c == True:
+            temp = 128
+            
+        # Check the rightmost bit
+        if value & 1 == 1:
+            self.c = True
+        else:
+            self.c = False
+        
+        # Shift Right
+        value = value >> 1
+        
+        # Wrap
+        value = self.wrap(value)
+        
+        # Add the carry
+        value = value | temp
+        
+        # Put the value into Accumulator or memory
+        if mode == Mode.ACCUMULATOR:
+            self.a = value
+        else:
+            self.memory[loc] = value
+
 
     # Testing / Debugging
     def push(self, value):

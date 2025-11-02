@@ -10,28 +10,15 @@ print(cpu.a)
 
 cpu.pc = 0x1000
 
-# SBC
-
+# ASL
 cpu.push(0xA9) # LDA #0xXX
-cpu.push(0x01)
-
-cpu.push(0x42) # DBG
-
-cpu.push(0xEA) # NOP
-cpu.push(0xEA) # NOP
-cpu.push(0xEA) # NOP
-cpu.push(0xEA) # NOP
-cpu.push(0xEA) # NOP
-cpu.push(0xEA) # NOP
-
-cpu.push(0x42) # DBG
+cpu.push(0x02)
 
 cpu.push(0x38) # SEC
 
 cpu.push(0x42) # DBG
 
-cpu.push(0xE9) # SBC #0xXX
-cpu.push(0x02)
+cpu.push(0x6A) # ROR (ACCUMULATOR)
 
 cpu.push(0x42) # DBG
 
