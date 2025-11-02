@@ -14,7 +14,7 @@ You can follow along with the development here on my YouTube Channel: [https://w
 
 ### To be implemented:
  - More 6502 Commands
-   - ASL, BIT, BRK, LSR, NOP, ROL, ROR, RTI, SBC 
+   - BIT, BRK, RTI 
  - More Addressing Modes
    - INDIRECTX, INDIRECTY
  - Setting Flags
@@ -27,3 +27,5 @@ You can follow along with the development here on my YouTube Channel: [https://w
  - Bitmap Graphics
 
 ### Simple Assembler
+ - One Pass Compiler
+ - Two Pass Compiler
