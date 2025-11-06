@@ -214,6 +214,10 @@ class CPU:
             value += 256
         return value
 
+    def set_nz(self, value):
+        self.z = (value == 0)
+        self.n = bool(value & 0x80)
+
     # LDA
     def LDA(self, mode):
         # Find the location based on the mode
@@ -222,6 +226,8 @@ class CPU:
         val = self.memory[loc]
         # Put that value in the accumulator
         self.a = val
+        # Set nz
+        self.set_nz(self.a)
         
     # LDX
     def LDX(self, mode):
@@ -231,6 +237,8 @@ class CPU:
         val = self.memory[loc]
         # Put that value in the accumulator
         self.x = val
+        # Set nz
+        self.set_nz(self.x)
         
     # LDY
     def LDY(self, mode):
@@ -240,6 +248,8 @@ class CPU:
         val = self.memory[loc]
         # Put that value in the accumulator
         self.y = val
+        # Set nz
+        self.set_nz(self.y)
         
     # STA
     def STA(self, mode):
@@ -266,37 +276,53 @@ class CPU:
     def INX(self, mode):
         self.x += 1
         self.x = self.wrap(self.x)
+        # Set nz
+        self.set_nz(self.x)
     
     # INY
     def INY(self, mode):
         self.y += 1
         self.y = self.wrap(self.y)
+        # Set nz
+        self.set_nz(self.y)
         
     # DEX
     def DEX(self, mode):
         self.x -= 1
         self.x = self.wrap(self.x)
+        # Set nz
+        self.set_nz(self.x)
     
     # DEY
     def DEY(self, mode):
         self.y -= 1
         self.y = self.wrap(self.y)
+        # Set nz
+        self.set_nz(self.y)
         
     # TAX
     def TAX(self, mode):
         self.x = self.a
+        # Set nz
+        self.set_nz(self.x)
         
     # TXA
     def TXA(self, mode):
         self.a = self.x
+        # Set nz
+        self.set_nz(self.a)
         
     # TAY
     def TAY(self, mode):
         self.y = self.a
+        # Set nz
+        self.set_nz(self.y)
         
     # TYA
     def TYA(self, mode):
         self.a = self.y
+        # Set nz
+        self.set_nz(self.a)
         
     # CLC
     def CLC(self, mode):
@@ -348,6 +374,9 @@ class CPU:
         
         if self.a >= 128:
             self.n = True
+            
+        # Set nz
+        self.set_nz(self.a)
             
     #BMI
     def BMI(self, mode):
@@ -468,6 +497,8 @@ class CPU:
     # TXA
     def TSX(self, mode):
         sefl.x = self.sp
+        # Set nz
+        self.set_nz(self.x)
         
     # PHA
     def PHA(self, mode):
@@ -496,6 +527,9 @@ class CPU:
         
         # Copy the value to the Accumulator
         self.a = self.memory[loc]
+        
+        # Set nz
+        self.set_nz(self.a)
     
     # PHP
     def PHP(self, mode):
@@ -650,6 +684,9 @@ class CPU:
         else:
             self.c = False
             
+        # Set nz
+        self.set_nz(self.a)
+            
     def SBC(self, mode):
         # Find the location based on the mode
         loc = self.get_location_by_mode(mode)
@@ -671,6 +708,9 @@ class CPU:
                 self.c = False
             else:
                 self.c = True
+                
+        # Set nz
+        self.set_nz(self.a)
 
     def AND(self, mode):
         # Find the location based on the mode
@@ -682,6 +722,9 @@ class CPU:
         # Perform logial AND
         self.a = self.a & value
         
+        # Set nz
+        self.set_nz(self.a)
+        
     def ORA(self, mode):
         # Find the location based on the mode
         loc = self.get_location_by_mode(mode)
@@ -692,6 +735,9 @@ class CPU:
         # Perform logial AND
         self.a = self.a | value
         
+        # Set nz
+        self.set_nz(self.a)
+        
     def EOR(self, mode):
         # Find the location based on the mode
         loc = self.get_location_by_mode(mode)
@@ -701,6 +747,9 @@ class CPU:
         
         # Perform logial AND
         self.a = self.a ^ value
+        
+        # Set nz
+        self.set_nz(self.a)
 
     def NOP(self, mode):
         pass
@@ -733,6 +782,9 @@ class CPU:
         else:
             self.memory[loc] = value
             
+        # Set nz
+        self.set_nz(value)
+            
     def LSR(self, mode):
         if mode == Mode.ACCUMULATOR:
             value = self.a
@@ -760,6 +812,9 @@ class CPU:
             self.a = value
         else:
             self.memory[loc] = value
+            
+        # Set nz
+        self.set_nz(value)
 
     def ROL(self, mode):
         if mode == Mode.ACCUMULATOR:
@@ -796,6 +851,9 @@ class CPU:
             self.a = value
         else:
             self.memory[loc] = value
+            
+        # Set nz
+        self.set_nz(value)
 
     def ROR(self, mode):
         if mode == Mode.ACCUMULATOR:
@@ -832,6 +890,9 @@ class CPU:
             self.a = value
         else:
             self.memory[loc] = value
+            
+        # Set nz
+        self.set_nz(value)
 
 
     # Testing / Debugging
