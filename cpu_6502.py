@@ -44,6 +44,7 @@ class CPU:
              
             0xA9: {"f": self.LDA, "m": Mode.IMMEDIATE},
             0xA5: {"f": self.LDA, "m": Mode.ZEROPAGE},
+            0xAD: {"f": self.LDA, "m": Mode.ABSOLUTE},
             0xB5: {"f": self.LDA, "m": Mode.ZEROPAGEX},
             0xBD: {"f": self.LDA, "m": Mode.ABSOLUTEX},
             0xB9: {"f": self.LDA, "m": Mode.ABSOLUTEY},
@@ -123,6 +124,24 @@ class CPU:
             0x2A: {"f": self.ROL, "m": Mode.ACCUMULATOR},
             
             0x6A: {"f": self.ROR, "m": Mode.ACCUMULATOR},
+            
+            0xE0: {"f": self.CPX, "m": Mode.IMMEDIATE},
+            0xE4: {"f": self.CPX, "m": Mode.ZEROPAGE},
+            0xEC: {"f": self.CPX, "m": Mode.ABSOLUTE},
+            
+            0xC0: {"f": self.CPY, "m": Mode.IMMEDIATE},
+            0xC4: {"f": self.CPY, "m": Mode.ZEROPAGE},
+            0xCC: {"f": self.CPY, "m": Mode.ABSOLUTE},
+            
+            0xE6: {"f": self.INC, "m": Mode.ZEROPAGE},
+            0xF6: {"f": self.INC, "m": Mode.ZEROPAGEX},
+            0xEE: {"f": self.INC, "m": Mode.ABSOLUTE},
+            0xFE: {"f": self.INC, "m": Mode.ABSOLUTEX},
+            
+            0xC6: {"f": self.DEC, "m": Mode.ZEROPAGE},
+            0xD6: {"f": self.DEC, "m": Mode.ZEROPAGEX},
+            0xCE: {"f": self.DEC, "m": Mode.ABSOLUTE},
+            0xDE: {"f": self.DEC, "m": Mode.ABSOLUTEX},
             
             
             
@@ -271,7 +290,21 @@ class CPU:
         loc = self.get_location_by_mode(mode)
         # Update memory
         self.memory[loc] = self.y
+       
+    # INC
+    def INC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+
+        value += 1
+        value = self.wrap(value)
+        self.memory[loc] = value
         
+        # Set nz
+        self.set_nz(value)        
+        
+
     # INX
     def INX(self, mode):
         self.x += 1
@@ -285,6 +318,19 @@ class CPU:
         self.y = self.wrap(self.y)
         # Set nz
         self.set_nz(self.y)
+    
+    # DEC
+    def DEC(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+
+        value -= 1
+        value = self.wrap(value)
+        self.memory[loc] = value
+        
+        # Set nz
+        self.set_nz(value) 
         
     # DEX
     def DEX(self, mode):
@@ -374,9 +420,39 @@ class CPU:
         
         if self.a >= 128:
             self.n = True
+    
+    # CPX
+    def CPX(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Set Carry if >= x
+        if value >= self.x:
+            self.c = True
             
-        # Set nz
-        self.set_nz(self.a)
+        if value == self.x:
+            self.z = True
+        
+        if self.x >= 128:
+            self.n = True
+    
+    # CPY
+    def CPY(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        value = self.memory[loc]
+        
+        # Set Carry if >= y
+        if value >= self.y:
+            self.c = True
+            
+        if value == self.y:
+            self.z = True
+        
+        if self.y >= 128:
+            self.n = True
+
             
     #BMI
     def BMI(self, mode):
