@@ -14,7 +14,7 @@ You can follow along with the development here on my YouTube Channel: [https://w
 
 ### To be implemented:
  - More 6502 Commands
-   - BIT, BRK, RTI, CPX, CPY, DEC, INC
+   - BIT, BRK, RTI
  - More Addressing Modes
    - INDIRECTX, INDIRECTY
  - Setting Flags
