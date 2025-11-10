@@ -13,14 +13,13 @@ You can follow along with the development here on my YouTube Channel: [https://w
 ## Road Map
 
 ### To be implemented:
- - More 6502 Commands
+ - 6502 Commands
    - BIT, BRK, RTI
- - More Addressing Modes
+ - Addressing Modes
    - INDIRECTX, INDIRECTY
- - Setting Flags
-   - V  
  - Interrupts
  - Decimal Mode
+ - Reset Vector
 
 ### Simple System
  - 40 Character Display
