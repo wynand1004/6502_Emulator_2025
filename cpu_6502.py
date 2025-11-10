@@ -31,13 +31,13 @@ class CPU:
         self.pc = 0x1000
         self.sp = 0xFF
         
-        self.n = False # N
-        self.v = False # V
-        self.b = False # B
-        self.d = False # D
-        self.i = False # I 
-        self.z = False # Z
-        self.c = False # C
+        self.n = False # N Negative
+        self.v = False # V oVerflow
+        self.b = False # B Break
+        self.d = False # D Decimal
+        self.i = False # I Interrupt
+        self.z = False # Z Zero
+        self.c = False # C Carry
         
         self.commands = {
             0x42: {"f": self.print_status, "m": Mode.IMPLIED},
@@ -746,12 +746,27 @@ class CPU:
         # Get the value
         value = self.memory[loc]
         
+        # Temp value for oVerflow checking
+        temp_value = value
+        temp_a = self.a
+        
         # Add value to the accumulator
         self.a += value
         
         # If the carry flag is set, add 1
         if self.c == True:
             self.a += 1
+            
+        # Set Overflow if necessary
+
+        # neg neg pos
+        if bool(temp_value & 128) and bool(temp_a & 128) and not bool(self.wrap(self.a) & 128):
+            self.v = True 
+        # pos pos neg
+        elif not bool(temp_value & 128) and not bool(temp_a & 128) and bool(self.wrap(self.a) & 128):
+            self.v = True
+        else:
+            self.v = False
         
         # Carry and Wrap around
         if self.a > 255:
@@ -770,12 +785,27 @@ class CPU:
         # Get the value
         value = self.memory[loc]
         
+        # Temp value for oVerflow checking
+        temp_value = value
+        temp_a = self.a
+        
         # Subtract value from accumulator
         self.a -= value
 
         # Check carry flag
         if self.c == False:
             self.a -= 1
+            
+        # Set Overflow if necessary
+
+        # neg neg pos
+        if bool(temp_value & 128) and bool(temp_a & 128) and not bool(self.wrap(self.a) & 128):
+            self.v = True 
+        # pos pos neg
+        elif not bool(temp_value & 128) and not bool(temp_a & 128) and bool(self.wrap(self.a) & 128):
+            self.v = True
+        else:
+            self.v = False
             
         if self.a < 0:
             self.a = self.wrap(self.a)

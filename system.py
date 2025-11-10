@@ -6,53 +6,17 @@ from cpu_6502 import *
 
 # Create CPU object
 cpu = CPU()
-print(cpu.a)
 
 cpu.pc = 0x1000
 
-cpu.push(0xA2) # LDX #
-cpu.push(0x01) 
-
-cpu.push(0xE0) # CPX #
-cpu.push(0x00)
+# Overflow Flag
+cpu.push(0xA9) # LDA #0xXX
+cpu.push(0x80)
 
 cpu.push(0x42) # DBG
 
-# LDY #
-cpu.push(0xA0) 
-cpu.push(0x01) 
-
-cpu.push(0xC0) # CPY #
-cpu.push(0x01)
-
-cpu.push(0x42) # DBG
-
-cpu.push(0xA9) # LDA #XX
-cpu.push(0x01)
-
-cpu.push(0x8D) # STA $4400
-cpu.push(0x00)
-cpu.push(0x44)
-
-cpu.push(0x42) # DBG
-
-cpu.push(0xCE) # DEC $4400
-cpu.push(0x00)
-cpu.push(0x44)
-
-cpu.push(0xAD) # LDA $4400
-cpu.push(0x00)
-cpu.push(0x44)
-
-cpu.push(0x42) # DBG
-
-cpu.push(0xEE) # INC $4400
-cpu.push(0x00)
-cpu.push(0x44)
-
-cpu.push(0xAD) # LDA $4400
-cpu.push(0x00)
-cpu.push(0x44)
+cpu.push(0xE9) # SBC #XX
+cpu.push(0xFE)
 
 cpu.push(0x42) # DBG
 
