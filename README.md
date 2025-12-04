@@ -14,9 +14,7 @@ You can follow along with the development here on my YouTube Channel: [https://w
 
 ### To be implemented:
  - 6502 Commands
-   - BIT, BRK, RTI
- - Addressing Modes
-   - INDIRECTX, INDIRECTY
+   - BRK, RTI
  - Interrupts
  - Decimal Mode
  - Reset Vector
