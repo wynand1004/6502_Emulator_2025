@@ -17,6 +17,8 @@ class Mode(Enum):
     INDIRECT = auto()
     RELATIVE = auto()
     ACCUMULATOR = auto()
+    INDIRECTX = auto()
+    INDIRECTY = auto()
     
 class CPU:
     
@@ -48,7 +50,8 @@ class CPU:
             0xB5: {"f": self.LDA, "m": Mode.ZEROPAGEX},
             0xBD: {"f": self.LDA, "m": Mode.ABSOLUTEX},
             0xB9: {"f": self.LDA, "m": Mode.ABSOLUTEY},
-            
+            0xA1: {"f": self.LDA, "m": Mode.INDIRECTX},
+            0xB1: {"f": self.LDA, "m": Mode.INDIRECTY},
             
             0xA2: {"f": self.LDX, "m": Mode.IMMEDIATE},
             0xAE: {"f": self.LDX, "m": Mode.ABSOLUTE},
@@ -143,7 +146,8 @@ class CPU:
             0xCE: {"f": self.DEC, "m": Mode.ABSOLUTE},
             0xDE: {"f": self.DEC, "m": Mode.ABSOLUTEX},
             
-            
+            0x24: {"f": self.BIT, "m": Mode.ZEROPAGE},
+            0x2C: {"f": self.BIT, "m": Mode.ABSOLUTE},
             
         }
 
@@ -222,6 +226,23 @@ class CPU:
             
         elif mode == Mode.RELATIVE:
             loc = self.pc + 1
+            
+        elif mode == Mode.INDIRECTX:
+            lsb = self.memory[self.pc+1]
+            loc = lsb + x
+            
+            lsb = self.memory[loc]
+            msb = self.memory[loc + 1]
+            loc = msb * 256 + lsb
+            
+        elif mode == Mode.INDIRECTY:
+            lsb = self.memory[self.pc+1]
+            loc = lsb
+            
+            lsb = self.memory[loc]
+            msb = self.memory[loc + 1]
+            loc = msb * 256 + lsb
+            loc += y
             
         return loc
 
@@ -830,6 +851,19 @@ class CPU:
         
         # Set nz
         self.set_nz(self.a)
+        
+    def BIT(self, mode):
+        # Find the location based on the mode
+        loc = self.get_location_by_mode(mode)
+        
+        # Get the value
+        value = self.memory[loc]
+        
+        # Perform logial AND
+        temp = self.a & value
+        
+        # Set nz
+        self.set_nz(temp)
         
     def ORA(self, mode):
         # Find the location based on the mode
